@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员添加</title>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <style>
+        #goods {
+            width: 400px;
+            height: 400px;
+            background: #eee;
+            border: 1px solid #ccc;
+            position: absolute;
+            left: 200px;
+            top: 250px;
+            
+        }
+
+        #user {
+            width: 400px;
+            height: 400px;
+            background: #eee;
+            border: 1px solid #ccc;
+            position: absolute;
+            left: 800px;
+            top: 250px;
+        }
+
+        #admin {
+            width: 400px;
+            height: 400px;
+            background: #eee;
+            border: 1px solid #ccc;
+            position: absolute;
+            left: 1400px;
+            top: 250px;
+        }
+
+        .div2 {
+            position: absolute;
+            float: left;
+            left: 50px;
+            top: 50px
+        }
+
+        .d1 {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <a href="/controller"
+        style=" color:darkgray; cursor: pointer; position: absolute; top: 10px; float:left; font-size: 20px;">返回管理页</a>
+    <button id="btn1"
+        style="position: absolute; top: 150px; font-size:20px; width:200px; height:50px; left: 300px; cursor: pointer">添加商品</button>
+    <div id="goods" hidden>
+        <div class="div2" >
+            <div class="d1">商品名称:<input type="text" id="goodsname"> </div>
+            <div class="d1">商品价格<input type="text" id="price"></div>
+            <div class="d1">商品数量:<input type="number" id="number" min="0"
+                    oninput="this.value=this.value.replace(/\D/g);">
+            </div>
+            <div class="d1">商品简介:<input type="text" id="content"> </div>
+            <div class="d1">商品状态:
+                <input type="radio" name="status" value="1">上架
+                <input type="radio" name="status" value="2">下架
+            </div>
+            <div class="d1"><input type="button" value="提交" onclick="goodsadd()" class="btn1"></div>
+        </div>
+    </div>
+    <button id="btn2"
+        style="position: absolute; top: 150px; font-size:20px ; width:200px; height:50px;left:900px; cursor: pointer">添加用户</button>
+    <div id="user" hidden>
+        <div class="div2">
+            <div class="d1">账号:<input type="text" id="useraccount"> </div>
+            <div class="d1">用户名称<input type="text" id="username"> </div>
+            <div class="d1"> 密码:<input type="password" id="userpassword"> </div>
+            <div class="d1"> 重新输入密码<input type="password" id="userrepassword"> </div>
+            <div class="d1">用户状态:
+                <input type="radio" name="userstatus" value="1">启用
+                <input type="radio" name="userstatus" value="2">禁用
+            </div>
+            <div class="d1"><input type="button" value="提交" onclick="useradd()" class="btn1"></div>
+        </div>
+    </div>
+    <button id="btn3"
+        style="position: absolute; top: 150px; font-size:20px; width:200px; height:50px;left: 1500px; cursor: pointer">添加管理员</button>
+    <div id="admin" hidden>
+        <div class="div2">
+            <div class="d1">账号:<input type="text" id="adminaccount"> </div>
+            <div class="d1">管理员名称<input type="text" id="adminname"> </div>
+            <div class="d1"> 密码:<input type="password" id="adminpassword"> </div>
+            <div class="d1"> 重新输入密码<input type="password" id="adminrepassword"> </div>
+            <div class="d1">管理员状态:
+                <input type="radio" name="adminstatus" value="1">启用
+                <input type="radio" name="adminstatus" value="2">禁用
+            </div>
+            <div class="d1"><input type="button" value="提交" onclick="adminadd()" class="btn1"></div>
+        </div>
+    </div>
+</body>
+
+</html>
+<script>
+    function goodsadd() {
+        $.ajax({
+            type: "post", data: { "name": $("#goodsname").val(), "price": $("#price").val(), "number": $("#number").val(), "content": $("#content").val(), "status": $("input[name='status']:checked").val() }, url: "/admin/goodsadd", success: function (result) {
+                if (result.status != 200) {
+                    alert(result.message)
+                    return
+                }
+                alert(result.message)
+            }
+        });
+    }
+
+    function useradd() {
+        $.ajax({
+            type: "post", data: { "account": $("#useraccount").val(), "name": $("#username").val(), "password": $("#userpassword").val(), "repassword": $("#userrepassword").val(), "status": $("input[name='userstatus']:checked").val() }, url: "/admin/useradd", success: function (result) {
+                if (result.status != 200) {
+                    alert(result.message)
+                    return
+                }
+                alert(result.message)
+            }
+        });
+    }
+
+    function adminadd() {
+        $.ajax({
+            type: "post", data: { "account": $("#adminaccount").val(), "name": $("#adminname").val(), "password": $("#adminpassword").val(), "repassword": $("#adminrepassword").val(), "status": $("input[name='adminstatus']:checked").val() }, url: "/admin/adminadd", success: function (result) {
+                if (result.status != 200) {
+                    alert(result.message)
+                    return
+                }
+                alert(result.message)
+            }
+        });
+    }
+    $(function () {
+        $("#btn1").click(function () {
+            $('#goods').toggle()
+        });
+        $("#btn2").click(function () {
+            $('#user').toggle()
+        });
+        $("#btn3").click(function () {
+            $('#admin').toggle()
+        });
+    })
+
+</script>

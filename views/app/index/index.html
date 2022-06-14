@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+</head>
+
+<body>
+    <input type="text" placeholder="商品名称" id="goodsname" style="position:relative; left:40%">
+    <input type="button" value="搜索" onclick="show(1)" style="position:absolute; left:50%">
+    <input type="button" value="个人中心" style="position: absolute; left:55%;" onclick="personalcenter()">
+    <br />
+    <table border="1" style="position: relative; left:35%; top: 20px;">
+        <tr>
+            <td width="100" style=" text-align:center">商品名称</td>
+            <td width="100" style=" text-align:center">商品价格</td>
+            <td width="300" style=" text-align:center">商品简介</td>
+            <td width="60" style=" text-align:center">购买</td>
+        </tr>
+    </table>
+    <table border="1" id="goodslist" style="position: relative; left:35%; top: 25px; text-align:center;">
+    </table>
+    <div class="page" style="margin: 10px; position: absolute; left:35%; top:70%"></div>
+    <button onclick="loginout()" style="margin: 5px;  position: absolute; left:35%; top:75%">退出</button>
+</body>
+
+</html>
+
+<script>
+    $(document).ready(function () { // 等待页面加载完成再调用show()方法
+        show(1)
+    })
+    // 商品展示
+    function show(pageNum) {
+        $.ajax({
+            type: "post", data: { "p": pageNum, "name": $("#goodsname").val() }, url: "/list", success: function (result) {
+                let content = ""
+                for (let i = 0; i < result.message.list.length; i++) {
+                    content += `<tr>
+                     <td width="100">`+ result.message.list[i].Name + `</td> 
+                     <td width="100">`+ result.message.list[i].Price + `</td>
+                     <td width="300">`+ result.message.list[i].Content + `</td>
+                     <td width="60" ><button onclick="buy(`+result.message.list[i].Id+`)" style="border:none; background-color:white; cursor: pointer">下单</button></td>
+                    </tr>`
+                }
+                $("#goodslist").html(content)
+
+                let pageContent = ""
+                let pageSize = getPageSize(result.message.total)
+                for (let i = 1; i <= pageSize; i++) {
+                    if (i == pageNum) {
+                        pageContent += `<button>[` + i + `]</button>`
+                    } else {
+                        pageContent += `<button onclick="show(` + i + `)">` + i + `</button>` // 这里又调用了show()函数，将当前页面传递给后端，由后端进行偏移量计算
+                    }
+                }
+                $(".page").html(pageContent)
+            }
+
+        })
+    }
+
+    function getPageSize(total) {
+        if (total % 20 == 0) {
+            return total / 20
+        }
+        return parseInt(total / 20) + 1
+    }
+    // 用户退出登录
+    function loginout() {
+        $.ajax({
+            type: "post", url: "/loginout", success: function (result) { // 通过url地址连接路由
+                if (result.status != 200) {  
+                    alert(result.message)
+                    return
+                }
+                window.location.href = "/login"
+            }
+        });
+    }
+    function personalcenter() {
+        window.location.href = "/user"
+    }
+    function buy(id){
+        window.location.href="/user/order?id="+id
+    }
+</script>

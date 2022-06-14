@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单</title>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+</head>
+
+<body>
+    <table border="1" style="position: relative; left:35%; top: 100px;">
+        <tr>
+            <td width="100" style=" text-align:center">商品名称</td>
+            <td width="100" style=" text-align:center">商品价格</td>
+            <td width="300" style=" text-align:center">商品简介</td>
+            <td width="50" style=" text-align:center; font-size: 50%;">商品数量</td>
+        </tr>
+    </table>
+    <table border="1" id="goodsorder" style="position: absolute; left: 35%; top: 150px;"></table>
+    <input type="number" placeholder="输入要购买的数量" id="buynum" min="1" oninput="this.value=this.value.replace(/\D/g);"
+        style="position:relative; left:45%" ;>
+    <input type="button" value="购买" onclick="buy()" style="position:absolute; left:60%;  cursor: pointer">
+    <a href="/" style="text-decoration: none; color:darkgray; position: relative; left:20%;">返回主页</a>
+</body>
+
+</html>
+<script>
+    $(document).ready(function () { // 等待页面加载完成再调用show()方法
+        show()
+    })
+    function show() {
+        $.ajax({
+            type: "post", data: { "goodsid": getUrlParms("id") }, url: "/user/order", success: function (result) {
+                let content = ""
+                content += `<tr>
+                     <td width="100" style="text-align:center">`+ result.message.Name + `</td>
+                     <td width="100" style="text-align:center">`+ result.message.Price + `</td>
+                     <td width="300" style="text-align:center">`+ result.message.Content + `</td>
+                     <td width="50" style="text-align:center">`+ result.message.Number + `</td>
+          </tr>`
+                $("#goodsorder").html(content)
+            }
+        })
+    }
+    function buy() {
+        $.ajax({
+            type: "post", data: { "num": $("#buynum").val(), "goodsid": getUrlParms("id")}, url: "/goods/buy", success: function (result) {
+                if (result.status != 200) {
+                    alert(result.message)
+                    return
+                }
+                alert(result.message)
+                window.location.reload(true);
+                return 
+            }
+        })
+    }
+    //获取地址栏参数，name:参数名称
+    function getUrlParms(name) {
+        let url = window.location.href;//获取请求进来的完整url
+        let tstr = url.substring(url.indexOf('?') + 1).split('&');//先截取url的?后面的参数部分，在根据&分割成参数数组
+        let result = {};
+        tstr.forEach((item) => {
+            let res = item.split('=');//res为type,my-component1.vue。  res[0]为type，res[1为]my-component1.vue
+            result[res[0]] = res[1];//构造成键值对形式 res[0]为键，res[1]为值 例：type: "my-component1.vue" 
+        })
+        return result[name];//通过键取值
+    }
+</script>

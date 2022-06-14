@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员后台</title>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+</head>
+
+<body>
+    <input type="text" placeholder="商品Id" id="goodsid" style="position:relative; float: left; margin-right: 10px; "
+        oninput="value=value.replace(/[^\d]/g,'')">
+    <input type="button" value="搜索" onclick="showgoods(1)" style="position:relative; float: left; cursor: pointer">
+    <input type="button" value="个人中心" style="position: absolute; left:34%; top:10px ;cursor: pointer"
+        onclick="admincenter() ">
+    <button onclick="loginout()" style="position: absolute; left:30%; top: 10px; cursor: pointer">退出</button>
+    <a href="/admin/add" style=" color:darkgray; cursor: pointer; position: absolute; left:900px; top: 10px;" >添加:商品 / 用户 / 管理员</a>
+    <table border="1" style="position: absolute; top: 50px; float: left;">
+        <tr>
+            <td width="60" style="text-align:center;">商品Id</td>
+            <td width="100" style=" text-align:center">商品名称</td>
+            <td width="100" style=" text-align:center">商品价格</td>
+            <td width="300" style=" text-align:center">商品简介</td>
+            <td width="60" style="text-align:center; font-size: 10px;">商品状态</td>
+            <td width="60" style="text-align:center">编辑</td>
+            <td width="60" style="text-align:center">删除</td>
+        </tr>
+    </table>
+    <table border="1" id="goodslist" style="position: absolute; top: 85px; text-align:center; float: left;">
+    </table>
+    <div id="p1" style="margin: 10px; position: absolute; top:70%; float: left;"></div>
+
+    <div id="choose" style="position: absolute; float:right; right:440px; top: 10px;">
+        <input type="radio" name="status" value="1" checked="true">All
+        <input type="radio" name="status" value="2">Admin
+        <input type="radio" name="status" value="3">User
+    </div>
+    <input type="text" placeholder="AdminId / UserId" id="roleid"
+        style="position:absolute; float: right; top:10px; right:240px; margin-right: 10px; "
+        oninput="value=value.replace(/[^\d]/g,'')">
+    <input type="button" value="搜索" onclick="check()"
+        style="position:absolute; float: right; right: 190px; top: 10px; cursor: pointer; ">
+
+    <table border="1" style="position: relative; top: 40px; float: right; right: 80px;">
+        <tr>
+            <td width="100" style="text-align:center;">管理员ID</td>
+            <td width="200" style=" text-align:center">管理员账号</td>
+            <td width="200" style=" text-align:center">管理员名称</td>
+            <td width="100" style=" text-align:center">状态</td>
+            <td width="200" style=" text-align:center">创建时间</td>
+            <td width="60" style=" text-align:center">编辑</td>
+            <td width="60" style="text-align:center">删除</td>
+        </tr>
+    </table>
+    <div
+        style="height:200px; width:1000px; position:absolute; float:righ; right:50px; top:100px; overflow:auto; background-color: darkgray;text-align: center;">
+        <table border="0" id="adminlist"></table>
+    </div>
+
+    <table border="1" style="position: relative; top: 305px; float: right; right: 80px;">
+        <tr>
+            <td width="100" style="text-align:center;">用户ID</td>
+            <td width="200" style=" text-align:center">用户账号</td>
+            <td width="200" style=" text-align:center">用户名称</td>
+            <td width="100" style=" text-align:center">状态</td>
+            <td width="200" style=" text-align:center">创建时间</td>
+            <td width="60" style=" text-align:center">编辑</td>
+            <td width="60" style="text-align:center">删除</td>
+        </tr>
+    </table>
+    <div
+        style="height:200px; width:1000px; position:absolute; float:righ; right:50px; top:425px; overflow:auto; background-color: darkgray;text-align: center;">
+        <table border="0" id="userlist"></table>
+    </div>
+</body>
+
+</html>
+<script>
+    $(document).ready(function () { // 等待页面加载完成再调用show()方法
+        showgoods(1)
+    })
+    $(document).ready(function () { // 等待页面加载完成再调用show()方法
+        check()
+    })
+    // 商品展示
+    function showgoods(pageNum) {
+        $.ajax({
+            type: "post", data: { "p": pageNum, "goodsid": $("#goodsid").val() }, url: "/list", success: function (result) {
+                let content = ""
+                for (let i = 0; i < result.message.list.length; i++) {
+                    content += `<tr>
+                     <td width="60" style="text-align:center">`+ result.message.list[i].Id + `</td>
+                     <td width="100" style="text-align:center">`+ result.message.list[i].Name + `</td> 
+                     <td width="100" style="text-align:center">`+ result.message.list[i].Price + `</td>
+                     <td width="300" style="text-align:center">`+ result.message.list[i].Content + `</td>
+                     <td width="60" style="text-align:center">`+ goodstatus(result.message.list[i].Status) + `</td>
+                     <td width="60" style="text-align:center"><button onclick="edit(`+ result.message.list[i].Id + `)" style="border:none; background-color:white; cursor: pointer">编辑</button></td>
+                     <td width="60" style="text-align:center"><button onclick="goodsdelete(`+ result.message.list[i].Id + `)" style="border:none; background-color:white; cursor: pointer">删除</button></td>
+                    </tr>`
+                }
+                $("#goodslist").html(content)
+
+                let pageContent = ""
+                let pageSize = getPageSize(result.message.total)
+                for (let i = 1; i <= pageSize; i++) {
+                    if (i == pageNum) {
+                        pageContent += `<button>[` + i + `]</button>`
+                    } else {
+                        pageContent += `<button onclick="showgoods(` + i + `)">` + i + `</button>` // 这里又调用了show()函数，将当前页面传递给后端，由后端进行偏移量计算
+                    }
+                }
+                $("#p1").html(pageContent)
+            }
+
+        })
+    }
+
+    // 管理员列表
+    function showadmin() {
+        $.ajax({
+            type: "post", data: { "adminid": $("#roleid").val() }, url: "/admin/list", success: function (result) {
+                let content = ""
+                for (let i = 0; i < result.message.list.length; i++) {
+                    content += `<tr>
+                     <td width="100" style=" text-align:center">`+ result.message.list[i].Id + `</td>
+                     <td width="200" style=" text-align:center">`+ result.message.list[i].Account + `</td> 
+                     <td width="200" style=" text-align:center">`+ result.message.list[i].Name + `</td>
+                     <td width="100" style=" text-align:center">`+ status(result.message.list[i].Status) + `</td>
+                     <td width="200" style="text-align:center">`+ convertDate(result.message.list[i].CreateTime) + `</td>
+                     <td width="60"  style="text-align:center"><button onclick="adminmanage(`+ result.message.list[i].Id + `)" style="border:none; background-color:darkgray; cursor: pointer">编辑</button></td>
+                     <td width="60" style="text-align:center"><button onclick="admindelete(`+ result.message.list[i].Id + `)" style="border:none; background-color:darkgray; cursor: pointer">删除</button></td>
+                    </tr>`
+                }
+                $("#adminlist").html(content)
+            }
+        })
+    }
+    // 用户列表
+    function showusers() {
+        $.ajax({
+            type: "post", data: { "usersid": $("#roleid").val() }, url: "/user/list", success: function (result) {
+                let content = ""
+                for (let i = 0; i < result.message.list.length; i++) {
+                    content += `<tr>
+                     <td width="100" style=" text-align:center">`+ result.message.list[i].Id + `</td>
+                     <td width="200" style=" text-align:center">`+ result.message.list[i].Account + `</td> 
+                     <td width="200" style=" text-align:center">`+ result.message.list[i].Name + `</td>
+                     <td width="100" style=" text-align:center">`+ status(result.message.list[i].Status) + `</td>
+                     <td width="200" style="text-align:center">`+ convertDate(result.message.list[i].CreateTime) + `</td>
+                     <td width="60"  style="text-align:center"><button onclick="usermanage(`+ result.message.list[i].Id + `)" style="border:none; background-color:darkgray; cursor: pointer">编辑</button></td>
+                     <td width="60" style="text-align:center"><button onclick="userdelete(`+ result.message.list[i].Id + `)" style="border:none; background-color:darkgray; cursor: pointer">删除</button></td>
+                    </tr>`
+                }
+                $("#userlist").html(content)
+            }
+        })
+    }
+    // 删除
+    function goodsdelete(id) {
+        $.ajax({
+            type: "post", data: { "goodsid": id }, url: "/goods/delete", success: function (result) {
+                if (result.status != 200) {
+                    alert(result.message)
+                    return
+                }
+                alert(result.message)
+                window.location.reload(true)
+            }
+        })
+    }
+    function admindelete(id) {
+        $.ajax({
+            type: "post", data: { "goodsid": id }, url: "/admin/delete", success: function (result) {
+                if (result.status != 200) {
+                    alert(result.message)
+                    return
+                }
+                alert(result.message)
+                window.location.reload(true)
+            }
+        })
+    }
+    function userdelete(id) {
+        $.ajax({
+            type: "post", data: { "goodsid": id }, url: "/user/delete", success: function (result) {
+                if (result.status != 200) {
+                    alert(result.message)
+                    return
+                }
+                alert(result.message)
+                window.location.reload(true)
+            }
+        })
+    }
+    // 查询角色
+    function check() {
+        var val = $("input[name='status']:checked").val()
+        console.log("传递的值是：", val)
+        if (val == 1) {
+            showadmin()
+            showusers()
+        }
+        if (val == 2) {
+            showadmin()
+        }
+        if (val == 3) {
+            showusers()
+        }
+        if (val < 0 || val > 3) {
+            alert("查询出现异常")
+        }
+    }
+
+    function goodstatus(num) {
+        if (num == 1) {
+            return "上架"
+        }
+        if (num == 2) {
+            return "下架"
+        }
+    }
+
+    function status(num) {
+        if (num == 1) {
+            return "启用"
+        }
+        if (num == 2) {
+            return "禁用"
+        }
+    }
+
+    function getPageSize(total) {
+        if (total % 20 == 0) {
+            return total / 20
+        }
+        return parseInt(total / 20) + 1
+    }
+    // 管理员退出登录
+    function loginout() {
+        $.ajax({
+            type: "post", url: "/loginout", success: function (result) { // 通过url地址连接路由
+                if (result.status != 200) {
+                    alert(result.message)
+                    return
+                }
+                window.location.href = "/login"
+            }
+        });
+    }
+    function convertDate(date) {
+        //date是传入的时间
+        let d = new Date(date);
+        let month = (d.getMonth() + 1) < 10 ? '0' + (d.getMonth() + 1) : (d.getMonth() + 1);
+        let day = d.getDate() < 10 ? '0' + d.getDate() : d.getDate();
+        let hours = d.getHours() < 10 ? '0' + d.getHours() : d.getHours();
+        let min = d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes();
+        let sec = d.getSeconds() < 10 ? '0' + d.getSeconds() : d.getSeconds();
+        let times = d.getFullYear() + '-' + month + '-' + day + ' ' + hours + ':' + min + ':' + sec;
+        return times
+    }
+    // 跳转至管理员个人中心页面
+    function admincenter() {
+        window.location.href = "/admin/personal"
+    }
+    // 跳转至商品编辑页面
+    function edit(id) {
+        window.location.href = "/admin/goodsedit?id=" + id
+    }
+    // 跳转至管理员管理界面
+    function adminmanage(id) {
+        window.location.href = "/admin/manage?id=" + id
+    }
+    // 跳转至用户管理界面
+    function usermanage(id) {
+        window.location.href = "/admin/usermanage?id=" + id
+    }
+</script>

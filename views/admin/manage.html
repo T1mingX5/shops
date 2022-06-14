@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员信息管理</title>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <style>
+        .div1 {
+            width: 500px;
+            height: 500px;
+            background: #eee;
+            border: 1px solid #ccc;
+            position: relative;
+            left: 35%;
+            top: 25%;
+        }
+
+        .div2 {
+            position: absolute;
+            left: 25%;
+            top: 20%;
+        }
+
+        .d1 {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <table border="1" style="position: relative; top: 20px; float: left; left: 500px;">
+        <tr>
+            <td width="150" style="text-align:center;">管理员ID</td>
+            <td width="200" style=" text-align:center">管理员账号</td>
+            <td width="200" style=" text-align:center">管理员名称</td>
+            <td width="100" style=" text-align:center">状态</td>
+            <td width="200" style=" text-align:center">创建时间</td>
+        </tr>
+    </table>
+    <table border="1" id="adminlist" style="position: absolute; left: 508px; text-align: center; top:70px"></table>
+    <button id="btn" style="position: absolute; top: 135px; left: 520px; cursor: pointer">编辑信息</button>
+    <div id="edit" hidden style="position: relative; top: 175px; left: 50px;">
+        <div class="div1">
+            <div class="div2">
+                <div class="d1">账号:<input type="text" placeholder="输入新账号" id="account"></div>
+                <div class="d1">名称:<input type="text" placeholder="输入新名称" id="name"></div>
+                <div class="d1">密码: <input type="text" placeholder="输入新密码" id="password"></div>
+                <div class="d1">再次输入密码: <input type="text" placeholder="再次输入密码" id="repassword"></div>
+                <input type="button" value="提交" style="margin-top: 10px; cursor: pointer" onclick="edit()">
+            </div>
+            <div style="position:absolute; left: 25%; top:10%">管理员状态:
+                <input type="radio" name="status" value="1">启用
+                <input type="radio" name="status" value="2">禁用
+            </div>
+        </div>
+    </div>
+    <a href="/controller"
+        style="text-decoration: none; color:darkgray; position: absolute; float: right; left: 200px; top: 25px;">返回主页</a>
+    <br />
+</body>
+
+</html>
+<script>
+    $(document).ready(function () { // 等待页面加载完成再调用show()方法
+        show()
+    })
+   
+    function show() {
+        $.ajax({
+            type: "post", data: { "adminid": getUrlParms("id") }, url: "/admin/manage", success: function (result) {
+                let content = ""
+                content += `<tr>
+                    <td width="150" style="text-align:center">`+ result.message.Id + `</td>
+                    <td width="200" style="text-align:center">`+ result.message.Account + `</td>
+                    <td width="200" style="text-align:center">`+ result.message.Name + `</td>
+                    <td width="100" style="text-align:center">`+ status(result.message.Status) + `</td>
+                    <td width="200" style="text-align:center">`+ convertDate(result.message.CreateTime) + `</td>
+          </tr>`
+                $("#adminlist").html(content)
+                // $("#editInfo").attr("href", "/user/edit?username=" + result.message.Account)
+            }
+        })
+    }
+    function edit() {
+        $.ajax({
+            type: "post", data: { "adminid": getUrlParms("id"), "account": $("#account").val(), "name": $("#name").val(), "password": $("#password").val(), "repassword": $("#repassword").val(), "status": $("input[name='status']:checked").val() }, url: "/admin/manage/edit", success: function (result) {
+                if (result.status != 200) {
+                    alert(result.message)
+                    return
+                }
+                if (result.message == "编辑成功,即将退出"){
+                    alert(result.message)
+                    loginout()
+                    return
+                }
+                alert(result.message)
+            }
+        });
+    }
+    function loginout() {
+        $.ajax({
+            type: "post", url: "/loginout", success: function (result) { // 通过url地址连接路由
+                if (result.status != 200) {
+                    alert(result.message)
+                    return
+                }
+                window.location.href = "/login"
+            }
+        });
+    }
+    function status(num) {
+        if (num == 1) {
+            return "启用"
+        }
+        if (num == 2) {
+            return "禁用"
+        }
+    }
+    $(function () {
+        $("#btn").click(function () {
+            $('#edit').toggle()
+        });
+    })
+
+    function convertDate(date) {
+        //date是传入的时间
+        let d = new Date(date);
+        let month = (d.getMonth() + 1) < 10 ? '0' + (d.getMonth() + 1) : (d.getMonth() + 1);
+        let day = d.getDate() < 10 ? '0' + d.getDate() : d.getDate();
+        let hours = d.getHours() < 10 ? '0' + d.getHours() : d.getHours();
+        let min = d.getMinutes() < 10 ? '0' + d.getMinutes() : d.getMinutes();
+        let sec = d.getSeconds() < 10 ? '0' + d.getSeconds() : d.getSeconds();
+        let times = d.getFullYear() + '-' + month + '-' + day + ' ' + hours + ':' + min + ':' + sec;
+        return times
+    }
+    //获取地址栏参数，name:参数名称
+    function getUrlParms(name) {
+        let url = window.location.href;//获取请求进来的完整url
+        let tstr = url.substring(url.indexOf('?') + 1).split('&');//先截取url的?后面的参数部分，在根据&分割成参数数组
+        let result = {};
+        tstr.forEach((item) => {
+            let res = item.split('=');//res为type,my-component1.vue。  res[0]为type，res[1为]my-component1.vue
+            result[res[0]] = res[1];//构造成键值对形式 res[0]为键，res[1]为值 例：type: "my-component1.vue" 
+        })
+        return result[name];//通过键取值
+    }
+</script>

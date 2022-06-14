@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户信息编辑</title>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <style>
+        .div1 {
+            width: 500px;
+            height: 500px;
+            background: #eee;
+            border: 1px solid #ccc;
+            position: relative;
+            left: 35%;
+            top: 25%;
+        }
+
+        .div2 {
+            position: absolute;
+            left: 30%;
+            top: 20%;
+        }
+
+        .d1 {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="div1">
+        <div class="div2">
+            <div class="d1"> 账号:<input type="text" placeholder="输入新的账号"  id="account" ></div>
+            <div class="d1"> 用户名:<input type="text" placeholder="输入新名称"  id="name" ></div>
+            <div class="d1">密码: <input type="text" placeholder="输入新密码"  id="password"></div>
+            <div class="d1">再次输入密码: <input type="text" placeholder="再次输入密码" name="repassword" id="repassword"></div>
+            <input type="button" value="提交" style="margin-top: 10px; cursor: pointer" onclick="edit()">
+            <a href="/user" style="text-decoration: none; color:darkgray;">返回</a>
+        </div>
+    </div>
+</body>
+
+</html>
+<script>
+    function edit() {
+        $.ajax({
+            type: "post", data: {"account":$("#account").val() ,"name": $("#name").val(), "password": $("#password").val(), "repassword": $("#repassword").val(), "status": 1}, url: "/edit", success: function (result) {
+                if (result.status != 200) {
+                    alert(result.message)
+                    return
+                }
+                alert(result.message)
+                window.location.href = "/user"
+            }
+        });
+    }
+    //获取地址栏参数，name:参数名称
+    function getUrlParms(name) {
+        let url = window.location.href;//获取请求进来的完整url
+        let tstr = url.substring(url.indexOf('?') + 1).split('&');//先截取url的?后面的参数部分，在根据&分割成参数数组
+        let result = {};
+        tstr.forEach((item) => {
+            let res = item.split('=');//res为type,my-component1.vue。  res[0]为type，res[1为]my-component1.vue
+            result[res[0]] = res[1];//构造成键值对形式 res[0]为键，res[1]为值 例：type: "my-component1.vue" 
+        })
+        return result[name];//通过键取值
+    }
+</script>

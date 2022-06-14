@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员登录</title>
+    <script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+    <style>
+        .div1 {
+            width: 500px;
+            height: 500px;
+            background: #eee;
+            border: 1px solid #ccc;
+            position: relative;
+            left: 35%;
+            top: 25%;
+        }
+        .div2 {
+            position: absolute;
+            left: 30%;
+            top: 20%;
+        }
+    </style>
+</head>
+<body>
+    <div class="div1">
+        <div class="div2">
+            账号:<input type="text" name="account" id="account"> <br />
+            密码:<input type="password" name="password" id="password"> <br />
+            <div style="margin: 20px;">
+                <input type="button" value="登录" onclick="login()" style="cursor: pointer">
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<script>
+    function login() {
+        $.ajax({
+            type: "post", data: { "account": $("#account").val(), "password": $("#password").val() }, url: "/adminlogin", success: function (result) {
+                if (result.status != 200) {
+                    alert(result.message)
+                    return
+                }
+                window.location.href = "/controller"
+            }
+        });
+    }
+</script>
+</html>
